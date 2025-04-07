@@ -9,6 +9,7 @@ import org.springframework.lang.Nullable;
 import javax.persistence.*;
 import java.util.Date;
 
+
 @Data
 @MappedSuperclass
 @AllArgsConstructor
