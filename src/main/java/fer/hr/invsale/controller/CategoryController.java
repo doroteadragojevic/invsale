@@ -1,6 +1,6 @@
 package fer.hr.invsale.controller;
 
-import fer.hr.invsale.DTO.CategoryDTO;
+import fer.hr.invsale.DTO.category.CategoryDTO;
 import fer.hr.invsale.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -90,7 +90,7 @@ public class CategoryController {
      *         or 404 Not Found if the category does not exist
      */
     @PutMapping("/")
-    public ResponseEntity<CategoryDTO> updateCategory(@RequestBody CategoryDTO category) {
+    public ResponseEntity<Void> updateCategory(@RequestBody CategoryDTO category) {
         try{
             categoryService.updateCategory(category);
             return ResponseEntity.noContent().build();

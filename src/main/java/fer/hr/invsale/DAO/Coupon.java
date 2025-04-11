@@ -3,10 +3,7 @@ package fer.hr.invsale.DAO;
 import fer.hr.invsale.util.MapToJsonConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import org.springframework.lang.Nullable;
 
 import java.sql.Timestamp;
@@ -20,13 +17,12 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Coupon {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idCoupon;
     /** Coupon code. It can be a combination of letters and numbers. */
-    @NonNull
+    @NotNull
+    @Id
     private String code;
     /** Coupon name. It should explain the occasion i.e. "new user", "black friday" etc. */
+    @NotNull
     private String name;
     /**
      * Coupon activation date and time.
@@ -52,6 +48,6 @@ public class Coupon {
     @Convert(converter = MapToJsonConverter.class)
     private Map<Integer, Integer> usagesByUser;
     /** Discount amount. */
-    @NonNull
+    @NotNull
     private Double discount;
 }

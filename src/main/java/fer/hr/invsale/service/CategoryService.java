@@ -1,7 +1,7 @@
 package fer.hr.invsale.service;
 
 import fer.hr.invsale.DAO.Category;
-import fer.hr.invsale.DTO.CategoryDTO;
+import fer.hr.invsale.DTO.category.CategoryDTO;
 import fer.hr.invsale.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

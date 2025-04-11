@@ -1,4 +1,4 @@
-package fer.hr.invsale.DTO;
+package fer.hr.invsale.DTO.category;
 
 import fer.hr.invsale.DAO.Category;
 import lombok.AllArgsConstructor;
