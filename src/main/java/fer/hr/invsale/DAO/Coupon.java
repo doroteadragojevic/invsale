@@ -20,11 +20,9 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Coupon {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idCoupon;
     /** Coupon code. It can be a combination of letters and numbers. */
     @NonNull
+    @Id
     private String code;
     /** Coupon name. It should explain the occasion i.e. "new user", "black friday" etc. */
     private String name;
