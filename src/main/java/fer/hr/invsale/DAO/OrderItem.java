@@ -1,12 +1,11 @@
 package fer.hr.invsale.DAO;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
-
-import javax.persistence.*;
 
 /**
  * This class represents one order item.

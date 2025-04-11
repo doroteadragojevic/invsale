@@ -46,11 +46,11 @@ public class CategoryController {
     /**
      * Handles HTTP GET request to retrieve all categories.
      *
-     * @return ResponseEntity containing the list of all CategoryDTOs or 404 Not Found if the list is null.
+     * @return ResponseEntity containing the list of all CategoryDTOs.
      */
     @GetMapping("/")
     public ResponseEntity<List<CategoryDTO>> getAllCategories() {
-        return ResponseEntity.ofNullable(categoryService.getAllCategories());
+        return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
     /**

@@ -1,5 +1,7 @@
 package fer.hr.invsale.DAO;
 
+import fer.hr.invsale.util.MapToJsonConverter;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,10 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import java.sql.Timestamp;
 import java.util.Map;
 
@@ -51,6 +49,7 @@ public class Coupon {
      * InvsaleUsers ID is key of this map, value is number of usages.
      * This map represents coupon usages by each user.
      */
+    @Convert(converter = MapToJsonConverter.class)
     private Map<Integer, Integer> usagesByUser;
     /** Discount amount. */
     @NonNull

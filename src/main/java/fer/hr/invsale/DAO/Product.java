@@ -1,12 +1,12 @@
 package fer.hr.invsale.DAO;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import javax.persistence.*;
 import java.util.Set;
 
 @Data

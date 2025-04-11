@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Data
@@ -19,7 +19,7 @@ public abstract class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idReview;
     @NonNull
-    @Enumerated(value = EnumType.STRING)
+    @Enumerated(value = EnumType.ORDINAL)
     private Rating rating;
     @Nullable
     private String comment;
