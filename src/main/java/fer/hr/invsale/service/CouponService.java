@@ -42,8 +42,9 @@ public class CouponService {
     }
 
     private Coupon updateFromDto(UpdateCouponDTO coupon) {
-        Coupon newCoupon = new Coupon();
-        newCoupon.setCode(coupon.getCode());
+        Coupon newCoupon = couponRepository
+                .findById(coupon.getCode())
+                .orElseThrow(() -> new NullPointerException("Coupon does not exist."));
         Optional.ofNullable(coupon.getName()).ifPresent(newCoupon::setName);
         Optional.ofNullable(coupon.getDateTimeFrom()).ifPresent(newCoupon::setDateTimeFrom);
         Optional.ofNullable(coupon.getDateTimeTo()).ifPresent(newCoupon::setDateTimeTo);

@@ -2,10 +2,7 @@ package fer.hr.invsale.DAO;
 
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import org.springframework.lang.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,6 +12,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class InvsaleUser {
 
     /** User email can be provided by user register or by OAuth. */
