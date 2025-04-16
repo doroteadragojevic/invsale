@@ -1,15 +1,13 @@
 package fer.hr.invsale.DTO.order;
 
 import fer.hr.invsale.DAO.PaymentMethod;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.lang.Nullable;
 
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
+@AllArgsConstructor
 public class CreateOrderDTO {
     @NonNull
     private String email;

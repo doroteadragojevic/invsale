@@ -41,7 +41,7 @@ public class OrderService {
     }
 
     public OrderDTO createOrder(CreateOrderDTO order) throws InstanceAlreadyExistsException {
-        checkIfOrderInProgressExists(order);
+        if(orderInProgressExists(order)) throw new InstanceAlreadyExistsException();
         return createFromDto(order);
     }
 
@@ -60,14 +60,10 @@ public class OrderService {
 
     }
 
-    private void checkIfOrderInProgressExists(CreateOrderDTO order) throws InstanceAlreadyExistsException {
-        orderRepository.findAllByInvsaleUser_Email(order.getEmail())
+    private boolean orderInProgressExists(CreateOrderDTO order) {
+        return orderRepository.findAllByInvsaleUser_Email(order.getEmail())
                 .stream()
-                .filter(o -> o.getOrderStatus().getName().equals("IN_PROGRESS"))
-                .findAny()
-                .ifPresent(o ->
-                        new InstanceAlreadyExistsException("This user already has order in progress.")
-                );
+                .anyMatch(o -> o.getOrderStatus().getName().equals("IN_PROGRESS"));
 
     }
 

@@ -2,15 +2,15 @@ package fer.hr.invsale.DTO.order;
 
 import fer.hr.invsale.DAO.Order;
 import fer.hr.invsale.DAO.PaymentMethod;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import org.springframework.lang.Nullable;
 
 import java.sql.Timestamp;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
+@Data
 public class OrderDTO {
     private Integer idOrder;
     @NonNull
