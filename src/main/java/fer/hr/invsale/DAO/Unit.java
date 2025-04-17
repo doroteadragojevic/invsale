@@ -26,4 +26,9 @@ public class Unit {
     private String name;
     @Nullable
     private String description;
+
+    public Unit(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 }
