@@ -1,11 +1,7 @@
 package fer.hr.invsale.DAO;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import org.springframework.lang.Nullable;
+import lombok.*;
 
 /**
  * This class represents one order item.
@@ -15,6 +11,7 @@ import org.springframework.lang.Nullable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class OrderItem {
 
     @Id
@@ -29,7 +26,7 @@ public class OrderItem {
     @NonNull
     private Integer quantity;
     @ManyToOne
-    @Nullable
+    @NonNull
     private Order order;
 
 }

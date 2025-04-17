@@ -7,6 +7,7 @@ import fer.hr.invsale.DTO.order.CreateOrderDTO;
 import fer.hr.invsale.DTO.order.OrderDTO;
 import fer.hr.invsale.DTO.order.UpdateOrderDTO;
 import fer.hr.invsale.repository.InvsaleUserRepository;
+import fer.hr.invsale.repository.OrderItemRepository;
 import fer.hr.invsale.repository.OrderRepository;
 import fer.hr.invsale.repository.OrderStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class OrderService {
 
     @Autowired
     OrderStatusRepository orderStatusRepository;
+
+    @Autowired
+    OrderItemRepository orderItemRepository;
 
     public List<OrderDTO> getAllOrdersByUser(String email) {
         if(!invsaleUserRepository.existsById(email)) throw new IllegalArgumentException("User does not exist.");
@@ -84,6 +88,7 @@ public class OrderService {
     public void deleteOrder(Integer id) throws NoSuchObjectException {
         if(!orderRepository.existsById(id))
             throw new NoSuchObjectException("Object with id " + id + " does not exist.");
+        orderItemRepository.deleteAllByOrder_IdOrder(id);
         orderRepository.deleteById(id);
     }
 }
