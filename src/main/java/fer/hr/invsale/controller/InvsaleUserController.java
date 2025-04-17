@@ -120,6 +120,4 @@ public class InvsaleUserController {
         }
     }
 
-    // metode get liked products by user za product controller
-    // metode like i remove u controller
 }

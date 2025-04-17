@@ -6,7 +6,7 @@ import lombok.*;
 import org.springframework.lang.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -27,7 +27,7 @@ public class InvsaleUser {
     /** List that contains liked product ids. */
     @Nullable
     @ManyToMany
-    private List<Product> likedProducts;
+    private Set<Product> likedProducts;
     @Nullable
     private String phoneNumber;
 

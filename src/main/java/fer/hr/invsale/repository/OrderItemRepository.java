@@ -15,4 +15,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
     Optional<OrderItem> findByProductAndUnitAndOrder(Product product, Unit unit, Order order);
 
     void deleteAllByOrder_IdOrder(Integer orderId);
+
+    void deleteAllByProduct_IdProduct(Integer id);
 }
