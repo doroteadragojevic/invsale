@@ -10,6 +10,7 @@ import fer.hr.invsale.repository.InvsaleUserRepository;
 import fer.hr.invsale.repository.OrderItemRepository;
 import fer.hr.invsale.repository.OrderRepository;
 import fer.hr.invsale.repository.OrderStatusRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -85,6 +86,7 @@ public class OrderService {
 
     }
 
+    @Transactional
     public void deleteOrder(Integer id) throws NoSuchObjectException {
         if(!orderRepository.existsById(id))
             throw new NoSuchObjectException("Object with id " + id + " does not exist.");

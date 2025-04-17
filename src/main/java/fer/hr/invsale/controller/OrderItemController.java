@@ -88,6 +88,22 @@ public class OrderItemController {
     }
 
     /**
+     * Decreases the quantity of a specific order item by one.
+     *
+     * @param id the ID of the order item
+     * @return HTTP status 204 if successful, or 404 if the item is not found
+     */
+    @PutMapping("/de/{id}")
+    public ResponseEntity<Void> decreaseQuantityByOne(@PathVariable Integer id) {
+        try{
+            orderItemService.decreaseQuantityByOne(id);
+            return ResponseEntity.noContent().build();
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
      * Deletes an order item by its ID.
      *
      * @param orderItemId the ID of the order item to delete

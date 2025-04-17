@@ -33,7 +33,7 @@ public class OrderItemService {
     ProductRepository productRepository;
 
     public List<OrderItemDTO> getAllOrderItemsByOrderId(Integer orderId) {
-        if(!orderRepository.existsById(orderId))
+        if (!orderRepository.existsById(orderId))
             throw new IllegalArgumentException("Order with id " + orderId + " does not exist.");
         return orderItemRepository.findAllByOrder_IdOrder(orderId).stream().map(OrderItemDTO::toDto).toList();
     }
@@ -47,14 +47,15 @@ public class OrderItemService {
      * Checks if given order, unit and product exist.
      * Checks if NEW order item meet uniqueness condition, meaning that other order item with same unit and product
      * should not exist in current order.
+     *
      * @param orderItem
      * @return OrderItemDTO
      * @throws InstanceAlreadyExistsException if order item with same unit and product already exists for current order
-     * @throws  IllegalArgumentException if order, unit or product does not exist
+     * @throws IllegalArgumentException       if order, unit or product does not exist
      */
     public OrderItemDTO createOrderItem(OrderItemDTO orderItem) throws InstanceAlreadyExistsException {
         validateExistence(orderItem);
-        if(!uniqueConditionMet(orderItem))
+        if (!uniqueConditionMet(orderItem))
             throw new InstanceAlreadyExistsException("Order item with given product and unit already exists in order.");
         return OrderItemDTO.toDto(createFromDto(orderItem));
     }
@@ -75,7 +76,7 @@ public class OrderItemService {
     }
 
     private void validateExistence(OrderItemDTO orderItem) {
-        if(!orderRepository.existsById(orderItem.getOrderId())
+        if (!orderRepository.existsById(orderItem.getOrderId())
                 || !unitRepository.existsById(orderItem.getUnitId())
                 || !productRepository.existsById(orderItem.getProductId())
         )
@@ -83,7 +84,7 @@ public class OrderItemService {
     }
 
     public void increaseQuantityByOne(Integer id) throws NoSuchObjectException {
-        if(!orderItemRepository.existsById(id))
+        if (!orderItemRepository.existsById(id))
             throw new NoSuchObjectException("Order item with id " + id + " does not exist.");
         OrderItem orderItem = orderItemRepository.findById(id).orElseThrow(NullPointerException::new);
         orderItem.setQuantity(orderItem.getQuantity() + 1);
@@ -91,8 +92,16 @@ public class OrderItemService {
     }
 
     public void deleteOrderItem(Integer orderItemId) throws NoSuchObjectException {
-        if(!orderItemRepository.existsById(orderItemId))
+        if (!orderItemRepository.existsById(orderItemId))
             throw new NoSuchObjectException("Order item with id " + orderItemId + " does not exist.");
         orderItemRepository.deleteById(orderItemId);
+    }
+
+    public void decreaseQuantityByOne(Integer id) throws NoSuchObjectException {
+        if (!orderItemRepository.existsById(id))
+            throw new NoSuchObjectException("Order item with id " + id + " does not exist.");
+        OrderItem orderItem = orderItemRepository.findById(id).orElseThrow(NullPointerException::new);
+        if (orderItem.getQuantity() != 0) orderItem.setQuantity(orderItem.getQuantity() - 1);
+        orderItemRepository.save(orderItem);
     }
 }

@@ -117,7 +117,9 @@ public class ProductService {
 
     public void updateProduct(UpdateProductDTO product) throws NoSuchObjectException {
         if (!productRepository.existsById(product.getIdProduct()))
-            throw new NoSuchObjectException("Manufacurer with id " + product.getIdManufacturer() + " does not exist.");
+            throw new NoSuchObjectException("Product with id " + product.getIdProduct() + " does not exist.");
+        if (!manufacturerRepository.existsById(product.getIdManufacturer()))
+            throw new NoSuchObjectException("Manufacturer with id " + product.getIdProduct() + " does not exist.");
         updateFromDto(product);
     }
 
