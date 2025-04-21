@@ -32,6 +32,9 @@ public class OrderItemService {
     @Autowired
     ProductRepository productRepository;
 
+    @Autowired
+    OrderItemReviewService orderItemReviewService;
+
     public List<OrderItemDTO> getAllOrderItemsByOrderId(Integer orderId) {
         if (!orderRepository.existsById(orderId))
             throw new IllegalArgumentException("Order with id " + orderId + " does not exist.");
@@ -94,6 +97,7 @@ public class OrderItemService {
     public void deleteOrderItem(Integer orderItemId) throws NoSuchObjectException {
         if (!orderItemRepository.existsById(orderItemId))
             throw new NoSuchObjectException("Order item with id " + orderItemId + " does not exist.");
+        orderItemReviewService.deleteAllByOrderItemId(orderItemId);
         orderItemRepository.deleteById(orderItemId);
     }
 
