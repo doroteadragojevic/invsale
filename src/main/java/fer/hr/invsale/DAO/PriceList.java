@@ -23,11 +23,13 @@ public class PriceList {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idPriceList;
     @ManyToOne
+    @NonNull
     private Product product;
     @ManyToOne
+    @NonNull
     private Unit unit;
     @NonNull
-    private Double price;
+    private Double priceWithoutDiscount;
     /** Price activation date and time. */
     @NonNull
     private Timestamp dateTimeFrom;

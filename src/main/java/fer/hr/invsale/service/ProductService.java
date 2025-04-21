@@ -6,6 +6,7 @@ import fer.hr.invsale.DTO.product.ProductDTO;
 import fer.hr.invsale.DTO.product.UpdateProductDTO;
 import fer.hr.invsale.DTO.unit.UnitDTO;
 import fer.hr.invsale.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,9 @@ public class ProductService {
 
     @Autowired
     UnitRepository unitRepository;
+
+    @Autowired
+    PriceListRepository priceListRepository;
 
     @Autowired
     OrderItemRepository orderItemRepository;
@@ -203,10 +207,12 @@ public class ProductService {
         }
     }
 
+    @Transactional
     public void deleteProduct(Integer id) throws NoSuchObjectException {
         if (!productRepository.existsById(id))
             throw new NoSuchObjectException("Product with id " + id + " does not exist.");
         orderItemRepository.deleteAllByProduct_IdProduct(id);
+        priceListRepository.deleteAllByProduct_IdProduct(id);
         productRepository.deleteById(id);
     }
 }

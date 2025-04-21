@@ -3,7 +3,9 @@ package fer.hr.invsale.service;
 import fer.hr.invsale.DAO.Unit;
 import fer.hr.invsale.DTO.unit.UnitDTO;
 import fer.hr.invsale.DTO.unit.UpdateUnitDTO;
+import fer.hr.invsale.repository.PriceListRepository;
 import fer.hr.invsale.repository.UnitRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ public class UnitService {
 
     @Autowired
     UnitRepository unitRepository;
+
+    @Autowired
+    PriceListRepository priceListRepository;
 
     public List<UnitDTO> getAllUnits() {
         return unitRepository.findAll().stream().map(UnitDTO::toDto).toList();
@@ -40,9 +45,12 @@ public class UnitService {
         unitRepository.save(updateUnit);
     }
 
+    @Transactional
     public void deleteUnit(Integer id) throws NoSuchObjectException {
         if(!unitRepository.existsById(id))
             throw new NoSuchObjectException("Unit with id " + id + " does not exist.");
+
+        priceListRepository.deleteAllByUnit_IdUnit(id);
         unitRepository.deleteById(id);
     }
 }
