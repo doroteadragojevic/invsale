@@ -36,6 +36,9 @@ public class OrderService {
     @Autowired
     OrderItemRepository orderItemRepository;
 
+    @Autowired
+    OrderReviewService orderReviewService;
+
     public List<OrderDTO> getAllOrdersByUser(String email) {
         if(!invsaleUserRepository.existsById(email)) throw new IllegalArgumentException("User does not exist.");
         return orderRepository.findAllByInvsaleUser_Email(email).stream().map(OrderDTO::toDto).toList();
@@ -91,6 +94,7 @@ public class OrderService {
         if(!orderRepository.existsById(id))
             throw new NoSuchObjectException("Object with id " + id + " does not exist.");
         orderItemRepository.deleteAllByOrder_IdOrder(id);
+        orderReviewService.deleteAllByOrder_IdOrder(id);
         orderRepository.deleteById(id);
     }
 }
