@@ -1,24 +1,26 @@
 package fer.hr.invsale.DAO;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import jakarta.persistence.*;
-import java.util.List;
+
+import java.util.Set;
 
 @Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class Shelf {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idShelf;
+    @NonNull
     private Double dimensionX;
+    @NonNull
     private Double dimensionY;
     @ManyToMany
-    private List<ShelfItem> shelfItems;
+    private Set<ShelfItem> shelfItems;
 
 }
