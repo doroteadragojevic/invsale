@@ -87,4 +87,5 @@ public class ShelfService {
             throw new NoSuchObjectException("Shelf with id " + id + " does not exist.");
         shelfRepository.deleteById(id);
     }
+
 }

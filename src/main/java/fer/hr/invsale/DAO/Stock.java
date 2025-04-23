@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -19,5 +19,5 @@ public class Stock {
     @NonNull
     private String name;
     @OneToMany
-    private List<Shelf> shelves;
+    private Set<Shelf> shelves;
 }
