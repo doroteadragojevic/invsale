@@ -4,16 +4,22 @@ import fer.hr.invsale.DAO.ShelfItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ShelfItemDTO {
+    @NonNull
     private Integer idShelfItem;
+    @NonNull
     private Double dimensionX;
+    @NonNull
     private Double dimensionY;
+    @NonNull
     private Integer productId;
     private String productName;
+    @NonNull
     private Integer unitId;
     private String unitName;
 
