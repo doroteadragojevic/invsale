@@ -7,9 +7,12 @@ import fer.hr.invsale.DTO.unit.UnitDTO;
 import fer.hr.invsale.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.rmi.NoSuchObjectException;
 import java.util.List;
 
@@ -47,6 +50,15 @@ public class ProductController {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/price/{id}")
+    public ResponseEntity<Double> getPrice(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(productService.getPrice(id));
+        } catch (NoSuchObjectException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -92,6 +104,24 @@ public class ProductController {
         } catch (NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/category/{name}")
+    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String name) {
+        try {
+            return ResponseEntity.ok(productService.getProductsByCategory(name));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping(value = "/img/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductDTO> addImage(@PathVariable Integer id,
+            @RequestPart("image") MultipartFile imageFile) throws IOException {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            productService.setImageData(id, imageFile.getBytes());
+        }
+        return ResponseEntity.noContent().build();
     }
 
     /**

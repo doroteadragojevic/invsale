@@ -8,6 +8,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Data
 @Entity
@@ -34,7 +36,7 @@ public class Product {
     @ManyToMany
     Set<Category> categories;
     @ManyToMany
-    Set<Unit> quantityUnits;
+    SortedSet<Unit> quantityUnits;
     @NonNull
     private Integer quantityOnStock;
 

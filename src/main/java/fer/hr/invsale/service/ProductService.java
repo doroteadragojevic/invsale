@@ -8,13 +8,11 @@ import fer.hr.invsale.DTO.unit.UnitDTO;
 import fer.hr.invsale.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.rmi.NoSuchObjectException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class ProductService {
@@ -113,7 +111,6 @@ public class ProductService {
         newProduct.setName(product.getName());
         Optional.ofNullable(product.getIngredients()).ifPresent(newProduct::setIngredients);
         newProduct.setDescription(product.getDescription());
-        Optional.ofNullable(product.getImageData()).ifPresent(newProduct::setImageData);
         Optional.ofNullable(product.getReorderNotificationThreshold()).ifPresent(newProduct::setReorderNotificationThreshold);
         newProduct.setQuantityOnStock(product.getQuantityOnStock());
         return productRepository.save(newProduct);
@@ -136,7 +133,6 @@ public class ProductService {
         Optional.ofNullable(product.getName()).ifPresent(updateProduct::setName);
         Optional.ofNullable(product.getIngredients()).ifPresent(updateProduct::setIngredients);
         Optional.ofNullable(product.getDescription()).ifPresent(updateProduct::setDescription);
-        Optional.ofNullable(product.getImageData()).ifPresent(updateProduct::setImageData);
         Optional.ofNullable(product.getReorderNotificationThreshold()).ifPresent(updateProduct::setReorderNotificationThreshold);
         Optional.ofNullable(product.getQuantityOnStock()).ifPresent(updateProduct::setQuantityOnStock);
         productRepository.save(updateProduct);
@@ -183,9 +179,9 @@ public class ProductService {
         Unit unit = unitRepository.findById(unitId).orElseThrow(NullPointerException::new);
         Product product = productRepository.findById(idProduct).orElseThrow(NullPointerException::new);
         if (product.getQuantityUnits() == null)
-            product.setQuantityUnits(Set.of(unit));
+            product.setQuantityUnits((TreeSet<Unit>) Set.of(unit));
         else {
-            Set<Unit> units = product.getQuantityUnits();
+            SortedSet<Unit> units = product.getQuantityUnits();
             units.add(unit);
             product.setQuantityUnits(units);
         }
@@ -200,7 +196,7 @@ public class ProductService {
         Unit unit = unitRepository.findById(unitId).orElseThrow(NullPointerException::new);
         Product product = productRepository.findById(idProduct).orElseThrow(NullPointerException::new);
         if (product.getQuantityUnits() != null) {
-            Set<Unit> units = product.getQuantityUnits();
+            SortedSet<Unit> units = product.getQuantityUnits();
             units.remove(unit);
             product.setQuantityUnits(units);
             productRepository.save(product);
@@ -214,6 +210,35 @@ public class ProductService {
         orderItemRepository.deleteAllByProduct_IdProduct(id);
         priceListRepository.deleteAllByProduct_IdProduct(id);
         productRepository.deleteById(id);
+    }
+
+    public void setImageData(Integer id, byte[] bytes) {
+        // Spremi proizvod u bazu
+        Product savedProduct = productRepository.findById(id).get();
+        savedProduct.setImageData(bytes);
+        productRepository.save(savedProduct);
+    }
+
+    public List<ProductDTO> getProductsByCategory(String name) {
+        Category category = categoryRepository.findById(name).orElseThrow(IllegalAccessError::new);
+        return productRepository.findAll()
+                .stream()
+                .filter(product -> product.getCategories().contains(category))
+                .map(ProductDTO::toDto).toList();
+    }
+
+    public Double getPrice(Integer id) throws NoSuchObjectException {
+        if(!productRepository.existsById(id))
+            throw new NoSuchObjectException("Product with id " + id  + " does not exist.");
+        Product product = productRepository.findById(id).get();
+        Unit unit = product.getQuantityUnits().first();
+        PriceList priceList = priceListRepository.findByProductAndUnit(product, unit).orElseThrow(IllegalArgumentException::new);
+
+        return priceList.getDiscount() == null ?
+                priceList.getPriceWithoutDiscount() :
+                priceList.getPriceWithoutDiscount() * (1 - priceList.getDiscount());
+
+
     }
 }
 

@@ -18,7 +18,7 @@ import org.springframework.lang.Nullable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Unit {
+public class Unit implements Comparable<Unit>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idUnit;
@@ -30,5 +30,10 @@ public class Unit {
     public Unit(String name, String description) {
         this.name = name;
         this.description = description;
+    }
+
+    @Override
+    public int compareTo(Unit o) {
+        return name.compareTo(o.name);
     }
 }

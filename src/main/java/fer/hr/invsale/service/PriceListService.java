@@ -79,7 +79,7 @@ public class PriceListService {
     private boolean uniqueConditionMet(PriceListDTO priceList) {
         Product product = productRepository.findById(priceList.getIdProduct()).orElseThrow(NullPointerException::new);
         Unit unit = unitRepository.findById(priceList.getUnitId()).orElseThrow(NullPointerException::new);
-        return priceListRepository.findAllByProductAndUnit(product, unit).stream().noneMatch(this::isActive);
+        return priceListRepository.findByProductAndUnit(product, unit).isEmpty();
     }
 
     private boolean isActive(PriceList priceList) {
@@ -123,7 +123,7 @@ public class PriceListService {
         || !Objects.equals(pl.getUnit().getIdUnit(), priceList.getUnitId())) {
             Product product = productRepository.findById(priceList.getIdProduct()).orElseThrow(NullPointerException::new);
             Unit unit = unitRepository.findById(priceList.getUnitId()).orElseThrow(NullPointerException::new);
-            return priceListRepository.findAllByProductAndUnit(product, unit).stream().noneMatch(this::isActive);
+            return priceListRepository.findByProductAndUnit(product, unit).isEmpty();
         }
         return true;
     }

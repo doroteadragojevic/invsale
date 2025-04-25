@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.Base64;
 import java.util.Set;
 
 @Data
@@ -23,7 +24,7 @@ public class ProductDTO {
     private Set<String> ingredients;
     @NonNull
     private String description;
-    private byte[] imageData;
+    private String imageData;
     private Integer reorderNotificationThreshold;
     @NonNull
     private Integer quantityOnStock;
@@ -36,7 +37,7 @@ public class ProductDTO {
                 product.getName(),
                 product.getIngredients(),
                 product.getDescription(),
-                product.getImageData(),
+                product.getImageData() == null ? null : Base64.getEncoder().encodeToString(product.getImageData()),
                 product.getReorderNotificationThreshold(),
                 product.getQuantityOnStock()
         );
