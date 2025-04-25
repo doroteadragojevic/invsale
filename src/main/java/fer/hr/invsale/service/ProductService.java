@@ -4,6 +4,7 @@ import fer.hr.invsale.DAO.*;
 import fer.hr.invsale.DTO.category.CategoryDTO;
 import fer.hr.invsale.DTO.product.ProductDTO;
 import fer.hr.invsale.DTO.product.UpdateProductDTO;
+import fer.hr.invsale.DTO.review.OrderItemReviewDTO;
 import fer.hr.invsale.DTO.unit.UnitDTO;
 import fer.hr.invsale.repository.*;
 import jakarta.transaction.Transactional;
@@ -37,6 +38,9 @@ public class ProductService {
 
     @Autowired
     OrderItemRepository orderItemRepository;
+
+    @Autowired
+    OrderItemReviewService orderItemReviewService;
 
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll().stream().map(ProductDTO::toDto).toList();
@@ -239,6 +243,13 @@ public class ProductService {
                 priceList.getPriceWithoutDiscount() * (1 - priceList.getDiscount());
 
 
+    }
+
+    public OptionalDouble getRatingByProduct(Integer id) throws NoSuchObjectException {
+        if(!productRepository.existsById(id))
+            throw new NoSuchObjectException("Product with id " + id + " does not exist.");
+        List<OrderItemReviewDTO> reviews =  orderItemReviewService.getReviewsForProduct(id);
+        return reviews.stream().mapToInt(review -> review.getRating().getValue()).average();
     }
 }
 

@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.rmi.NoSuchObjectException;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
 
 /**
  * REST controller for managing products in the inventory system.
@@ -56,6 +58,15 @@ public class ProductController {
     public ResponseEntity<Double> getPrice(@PathVariable Integer id) {
         try {
             return ResponseEntity.ok(productService.getPrice(id));
+        } catch (NoSuchObjectException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/rating/{id}")
+    public ResponseEntity<OptionalDouble> getRatingByProduct(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(productService.getRatingByProduct(id));
         } catch (NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
         }

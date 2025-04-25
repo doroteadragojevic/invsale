@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.management.InstanceAlreadyExistsException;
 import java.rmi.NoSuchObjectException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -83,5 +84,12 @@ public class OrderItemReviewService {
 
     public void deleteAllByOrderItemId(Integer orderItemId) {
         orderItemReviewRepository.deleteAllByOrderItem_IdOrderItem(orderItemId);
+    }
+
+    public List<OrderItemReviewDTO> getReviewsForProduct(Integer id) {
+        return orderItemReviewRepository.findAll()
+                .stream()
+                .filter(oir -> Objects.equals(oir.getOrderItem().getProduct().getIdProduct(), id))
+                .map(OrderItemReviewDTO::toDto).toList();
     }
 }

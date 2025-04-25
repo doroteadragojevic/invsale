@@ -1,9 +1,11 @@
 package fer.hr.invsale.DTO.product;
 
 import fer.hr.invsale.DAO.Product;
+import fer.hr.invsale.service.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
