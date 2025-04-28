@@ -7,7 +7,12 @@ import fer.hr.invsale.DTO.invsaleUser.InvsaleUserDTO;
 import fer.hr.invsale.DTO.invsaleUser.UpdateInvsaleUserDTO;
 import fer.hr.invsale.repository.InvsaleUserRepository;
 import fer.hr.invsale.repository.RoleRepository;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
@@ -16,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class InvsaleUserService {
+public class InvsaleUserService implements UserDetailsService{
 
     @Autowired
     InvsaleUserRepository invsaleUserRepository;
@@ -41,11 +46,11 @@ public class InvsaleUserService {
 
     private InvsaleUser createUserFromDto(CreateInvsaleUserDTO user) throws IllegalArgumentException{
         InvsaleUser createdUser = new InvsaleUser(user.getEmail());
-        Role role = roleRepository.findById(user.getRole())
+        Role role = roleRepository.findById("USER")
                 .orElseThrow(() -> new IllegalArgumentException("Role does not exist."));
         createdUser.setRole(role);
         Optional.ofNullable(user.getPhoneNumber()).ifPresent(createdUser::setPhoneNumber);
-        Optional.ofNullable(user.getPassword()).ifPresent(password -> createdUser.setHashedPassword(String.valueOf(password.hashCode())));
+        Optional.ofNullable(user.getPassword()).ifPresent(createdUser::setHashedPassword);
         return createdUser;
     }
 
@@ -70,5 +75,25 @@ public class InvsaleUserService {
             throw new NoSuchObjectException("User \"" + email + "\" does not exist.");
 
         invsaleUserRepository.deleteById(email);
+    }
+
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        var invsaleUser = invsaleUserRepository.findById(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return User.builder()
+                .username(invsaleUser.getEmail())
+                .password(invsaleUser.getHashedPassword())
+                .roles(invsaleUser.getRole().getName())
+                .build();
+    }
+
+    public @NonNull Boolean isAdmin(@NonNull String email) {
+        return invsaleUserRepository.findById(email).get()
+                .getRole()
+                .getName()
+                .equalsIgnoreCase("admin");
     }
 }

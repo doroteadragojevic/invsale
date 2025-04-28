@@ -1,12 +1,16 @@
 package fer.hr.invsale.controller;
 
-import fer.hr.invsale.DTO.invsaleUser.CreateInvsaleUserDTO;
-import fer.hr.invsale.DTO.invsaleUser.InvsaleUserDTO;
-import fer.hr.invsale.DTO.invsaleUser.UpdateInvsaleUserDTO;
+import fer.hr.invsale.DTO.invsaleUser.*;
+import fer.hr.invsale.config.JwtService;
 import fer.hr.invsale.service.InvsaleUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
@@ -45,6 +49,15 @@ public class InvsaleUserController {
     @Autowired
     InvsaleUserService invsaleUserService;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     /**
      * Retrieves a list of all users in the system.
      *
@@ -73,16 +86,30 @@ public class InvsaleUserController {
      *
      * @param user the user data to be created
      * @return the created {@link InvsaleUserDTO} with status 201 Created,
-     *         409 Conflict if user already exists, or 400 Bad Request if given role does not exist
+     * 409 Conflict if user already exists, or 400 Bad Request if given role does not exist
      */
     @PostMapping("/")
     public ResponseEntity<InvsaleUserDTO> createUser(@RequestBody CreateInvsaleUserDTO user) {
-        try{
+        try {
+            if (user.getPassword() != null) user.setPassword(passwordEncoder.encode(user.getPassword()));
             return new ResponseEntity<>(invsaleUserService.createUser(user), HttpStatus.CREATED);
-        }catch(KeyAlreadyExistsException e) {
+        } catch (KeyAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<RoleAndTokenDTO> login(@RequestBody LoginDTO user) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())
+            );
+            Boolean isAdmin = invsaleUserService.isAdmin(user.getEmail());
+            return ResponseEntity.ok(new RoleAndTokenDTO(isAdmin, jwtService.generateToken(user.getEmail())));
+        } catch (AuthenticationException e) {
+            throw new RuntimeException("Invalid email or password");
         }
     }
 
@@ -91,14 +118,14 @@ public class InvsaleUserController {
      *
      * @param user the updated user data
      * @return 204 No Content if update was successful,
-     *         or 404 Not Found if the user does not exist
+     * or 404 Not Found if the user does not exist
      */
     @PutMapping("/")
     public ResponseEntity<Void> updateUser(@RequestBody UpdateInvsaleUserDTO user) {
-        try{
+        try {
             invsaleUserService.updateUser(user);
             return ResponseEntity.noContent().build();
-        }catch(NoSuchObjectException e) {
+        } catch (NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -108,14 +135,14 @@ public class InvsaleUserController {
      *
      * @param email the email of the user to delete
      * @return 204 No Content if deletion was successful,
-     *         or 404 Not Found if the user does not exist
+     * or 404 Not Found if the user does not exist
      */
     @DeleteMapping("/{email}")
     public ResponseEntity<Void> deleteUser(@PathVariable String email) {
-        try{
+        try {
             invsaleUserService.deleteUser(email);
             return ResponseEntity.noContent().build();
-        }catch(NoSuchObjectException e) {
+        } catch (NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
         }
     }
