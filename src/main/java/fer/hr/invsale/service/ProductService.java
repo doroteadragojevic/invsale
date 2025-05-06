@@ -13,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.rmi.NoSuchObjectException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -26,6 +29,9 @@ public class ProductService {
 
     @Autowired
     ManufacturerRepository manufacturerRepository;
+
+    @Autowired
+    ReservationService reservationService;
 
     @Autowired
     CategoryRepository categoryRepository;
@@ -123,7 +129,7 @@ public class ProductService {
     public void updateProduct(UpdateProductDTO product) throws NoSuchObjectException {
         if (!productRepository.existsById(product.getIdProduct()))
             throw new NoSuchObjectException("Product with id " + product.getIdProduct() + " does not exist.");
-        if (!manufacturerRepository.existsById(product.getIdManufacturer()))
+        if (product.getIdManufacturer() != null && !manufacturerRepository.existsById(product.getIdManufacturer()))
             throw new NoSuchObjectException("Manufacturer with id " + product.getIdProduct() + " does not exist.");
         updateFromDto(product);
     }
@@ -232,24 +238,136 @@ public class ProductService {
     }
 
     public Double getPrice(Integer id) throws NoSuchObjectException {
-        if(!productRepository.existsById(id))
-            throw new NoSuchObjectException("Product with id " + id  + " does not exist.");
+        if (!productRepository.existsById(id))
+            throw new NoSuchObjectException("Product with id " + id + " does not exist.");
         Product product = productRepository.findById(id).get();
-        Unit unit = product.getQuantityUnits().first();
-        PriceList priceList = priceListRepository.findByProductAndUnit(product, unit).orElseThrow(IllegalArgumentException::new);
+        Set<Unit> units = product.getQuantityUnits();
+        PriceList priceListLowest = null;
+        Double min = Double.MAX_VALUE;
+        for (Unit unit : units) {
+            PriceList priceList = priceListRepository.findByProductAndUnit(product, unit).orElseThrow(IllegalArgumentException::new);
+            if (priceList.getPriceWithoutDiscount() < min && isActive(priceList)) {
+                min = priceList.getPriceWithoutDiscount();
+                priceListLowest = priceList;
+            }
+        }
 
-        return priceList.getDiscount() == null ?
-                priceList.getPriceWithoutDiscount() :
-                priceList.getPriceWithoutDiscount() * (1 - priceList.getDiscount());
+        return priceListLowest.getDiscount() == null ?
+                priceListLowest.getPriceWithoutDiscount() :
+                priceListLowest.getPriceWithoutDiscount() * (1 - priceListLowest.getDiscount());
 
 
     }
 
+    private boolean isActive(PriceList priceList) {
+        return priceList.getDateTimeFrom().before(Timestamp.valueOf(LocalDateTime.now()))
+                && priceList.getDateTimeTo().after(Timestamp.valueOf(LocalDateTime.now()));
+    }
+
     public OptionalDouble getRatingByProduct(Integer id) throws NoSuchObjectException {
-        if(!productRepository.existsById(id))
+        if (!productRepository.existsById(id))
             throw new NoSuchObjectException("Product with id " + id + " does not exist.");
-        List<OrderItemReviewDTO> reviews =  orderItemReviewService.getReviewsForProduct(id);
+        List<OrderItemReviewDTO> reviews = orderItemReviewService.getReviewsForProduct(id);
         return reviews.stream().mapToInt(review -> review.getRating().getValue()).average();
+    }
+
+    public Boolean getDiscount(Integer id) throws NoSuchObjectException {
+        if (!productRepository.existsById(id))
+            throw new NoSuchObjectException("Product with id " + id + " does not exist.");
+        Product product = productRepository.findById(id).get();
+        Set<Unit> units = product.getQuantityUnits();
+        PriceList priceListLowest = null;
+        Double min = Double.MAX_VALUE;
+        for (Unit unit : units) {
+            PriceList priceList = priceListRepository.findByProductAndUnit(product, unit).orElseThrow(IllegalArgumentException::new);
+            if (priceList.getPriceWithoutDiscount() < min && isActive(priceList)) {
+                min = priceList.getPriceWithoutDiscount();
+                priceListLowest = priceList;
+            }
+        }
+
+        return priceListLowest.getDiscount() != null && priceListLowest.getDiscount() != 0;
+    }
+
+    public UnitDTO getBasicUnit(Integer id) throws NoSuchObjectException {
+        if (!productRepository.existsById(id))
+            throw new NoSuchObjectException("Product with id " + id + " does not exist.");
+        Product product = productRepository.findById(id).get();
+        Set<Unit> units = product.getQuantityUnits();
+        PriceList priceListLowest = null;
+        Double min = Double.MAX_VALUE;
+        for (Unit unit : units) {
+            PriceList priceList = priceListRepository.findByProductAndUnit(product, unit).orElseThrow(IllegalArgumentException::new);
+            if (priceList.getPriceWithoutDiscount() < min && isActive(priceList)) {
+                min = priceList.getPriceWithoutDiscount();
+                priceListLowest = priceList;
+            }
+        }
+
+        return UnitDTO.toDto(priceListLowest.getUnit());
+    }
+
+    public Integer getReservedQuantity(Integer id) {
+        return reservationService.getCurrentlyReservedQuantity(id);
+    }
+
+    public List<ProductDTO> getRecommendedProducts(String email) {
+        List<Product> productsUserOrdered = orderItemRepository
+                .findAll()
+                .stream().filter(orderItem -> !orderItem.getOrder().getOrderStatus().getName().equals("IN_PROGRESS"))
+                .filter(orderItem -> orderItem.getOrder().getInvsaleUser().getEmail().equals(email))
+                .map(orderItem -> orderItem.getProduct())
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        Set<String> ingredientsInOrderedProducts = new HashSet<>();
+        productsUserOrdered.forEach(product -> {
+            if (product.getIngredients() != null)
+                ingredientsInOrderedProducts.addAll(product.getIngredients());
+        });
+
+        List<Product> recommended = productRepository.findAll().stream()
+                // filtriraj one koji imaju barem jedan ingredient iz korisnikovih naručenih proizvoda
+                .filter(product -> {
+                    if (product.getIngredients() == null) return false;
+                    for (String ingredient : product.getIngredients()) {
+                        if (ingredientsInOrderedProducts.contains(ingredient)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                // sortiraj po broju matching sastojaka — od najmanjeg prema najvećem
+                .sorted(Comparator.comparingInt((Product product) -> {
+                    long count = product.getIngredients().stream()
+                            .filter(ingredientsInOrderedProducts::contains)
+                            .count();
+                    return (int) count;
+                }).reversed())
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        int i = 0;
+        List<Product> popularProducts = getPopularProducts();
+        while(recommended.size() < 6){
+            recommended.add(popularProducts.get(i++));
+        }
+
+        return recommended.stream().map(ProductDTO::toDto).toList();
+
+    }
+
+    private List<Product> getPopularProducts() {
+        List<OrderItem> allOrderItems = orderItemRepository.findAll();
+
+        // Broji koliko puta se svaki proizvod pojavio u narudžbama
+        Map<Product, Long> productCountMap = allOrderItems.stream()
+                .collect(Collectors.groupingBy(OrderItem::getProduct, Collectors.counting()));
+
+        // Sortira proizvode prema broju kupnji (od najviše prema najmanje) i vraća ih kao listu
+        return productCountMap.entrySet().stream()
+                .sorted(Map.Entry.<Product, Long>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .limit(10)
+                .collect(Collectors.toList());
     }
 }
 

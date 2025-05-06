@@ -1,14 +1,8 @@
 package fer.hr.invsale.service;
 
-import fer.hr.invsale.DAO.Order;
-import fer.hr.invsale.DAO.OrderItem;
-import fer.hr.invsale.DAO.Product;
-import fer.hr.invsale.DAO.Unit;
+import fer.hr.invsale.DAO.*;
 import fer.hr.invsale.DTO.orderItem.OrderItemDTO;
-import fer.hr.invsale.repository.OrderItemRepository;
-import fer.hr.invsale.repository.OrderRepository;
-import fer.hr.invsale.repository.ProductRepository;
-import fer.hr.invsale.repository.UnitRepository;
+import fer.hr.invsale.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +18,9 @@ public class OrderItemService {
     OrderItemRepository orderItemRepository;
 
     @Autowired
+    ReservationService reservationService;
+
+    @Autowired
     OrderRepository orderRepository;
 
     @Autowired
@@ -34,6 +31,9 @@ public class OrderItemService {
 
     @Autowired
     OrderItemReviewService orderItemReviewService;
+
+    @Autowired
+    PriceListRepository priceListRepository;
 
     public List<OrderItemDTO> getAllOrderItemsByOrderId(Integer orderId) {
         if (!orderRepository.existsById(orderId))
@@ -68,7 +68,10 @@ public class OrderItemService {
         Unit unit = unitRepository.findById(orderItem.getUnitId()).orElseThrow(NullPointerException::new);
         Order order = orderRepository.findById(orderItem.getOrderId()).orElseThrow(NullPointerException::new);
         OrderItem newOrderItem = new OrderItem(product, unit, orderItem.getQuantity(), order);
-        return orderItemRepository.save(newOrderItem);
+        newOrderItem = orderItemRepository.save(newOrderItem);
+        updateOrderTotalPrice(newOrderItem.getIdOrderItem(), true, 1);
+        reservationService.reserveProduct(product.getIdProduct(), order.getInvsaleUser().getEmail(), orderItem.getQuantity());
+        return newOrderItem;
     }
 
     private Boolean uniqueConditionMet(OrderItemDTO uniqueOrderItem) {
@@ -91,12 +94,31 @@ public class OrderItemService {
             throw new NoSuchObjectException("Order item with id " + id + " does not exist.");
         OrderItem orderItem = orderItemRepository.findById(id).orElseThrow(NullPointerException::new);
         orderItem.setQuantity(orderItem.getQuantity() + 1);
+        updateOrderTotalPrice(id, true, 1);
+        reservationService.updateReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), 1);
         orderItemRepository.save(orderItem);
+    }
+
+    private void updateOrderTotalPrice(Integer id, Boolean increase, Integer quantity) {
+        OrderItem orderItem = orderItemRepository.findById(id).get();
+        Order order = orderItem.getOrder();
+        PriceList priceList = priceListRepository.findByProductAndUnit(orderItem.getProduct(), orderItem.getUnit()).get();
+        Double priceWithDiscount = (priceList.getDiscount() == null || priceList.getDiscount() == 0) ?
+                priceList.getPriceWithoutDiscount() :
+                priceList.getPriceWithoutDiscount() * (1 - priceList.getDiscount());
+        int operationType = increase ? 1 : (-1);
+        order.setTotalPrice(order.getTotalPrice() + (priceWithDiscount * operationType * quantity));
+        orderRepository.save(order);
     }
 
     public void deleteOrderItem(Integer orderItemId) throws NoSuchObjectException {
         if (!orderItemRepository.existsById(orderItemId))
             throw new NoSuchObjectException("Order item with id " + orderItemId + " does not exist.");
+        OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+        Product product = orderItem.getProduct();
+        InvsaleUser user = orderItem.getOrder().getInvsaleUser();
+        reservationService.deleteReservation(product.getIdProduct(), user.getEmail());
+        updateOrderTotalPrice(orderItemId, false, orderItem.getQuantity());
         orderItemReviewService.deleteAllByOrderItemId(orderItemId);
         orderItemRepository.deleteById(orderItemId);
     }
@@ -105,7 +127,15 @@ public class OrderItemService {
         if (!orderItemRepository.existsById(id))
             throw new NoSuchObjectException("Order item with id " + id + " does not exist.");
         OrderItem orderItem = orderItemRepository.findById(id).orElseThrow(NullPointerException::new);
-        if (orderItem.getQuantity() != 0) orderItem.setQuantity(orderItem.getQuantity() - 1);
+        if (orderItem.getQuantity() != 0) {
+            orderItem.setQuantity(orderItem.getQuantity() - 1);
+            updateOrderTotalPrice(id, false, 1);
+            reservationService.updateReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), -1);
+        }
+        if (orderItem.getQuantity() == 0){
+            updateOrderTotalPrice(id, false, 1);
+            reservationService.deleteReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail());
+        }
         orderItemRepository.save(orderItem);
     }
 }

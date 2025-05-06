@@ -63,6 +63,29 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/discount/{id}")
+    public ResponseEntity<Boolean> getDiscount(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(productService.getDiscount(id));
+        } catch (NoSuchObjectException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/basicUnit/{id}")
+    public ResponseEntity<UnitDTO> getBasicUnit(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(productService.getBasicUnit(id));
+        } catch (NoSuchObjectException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/reserved/{id}")
+    public ResponseEntity<Integer> getReservedQuantity(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getReservedQuantity(id));
+    }
+
     @GetMapping("/rating/{id}")
     public ResponseEntity<OptionalDouble> getRatingByProduct(@PathVariable Integer id) {
         try {
@@ -126,9 +149,18 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/recommended/{email}")
+    public ResponseEntity<List<ProductDTO>> getRecommendedProducts(@PathVariable String email) {
+        try {
+            return ResponseEntity.ok(productService.getRecommendedProducts(email));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping(value = "/img/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductDTO> addImage(@PathVariable Integer id,
-            @RequestPart("image") MultipartFile imageFile) throws IOException {
+                                               @RequestPart("image") MultipartFile imageFile) throws IOException {
         if (imageFile != null && !imageFile.isEmpty()) {
             productService.setImageData(id, imageFile.getBytes());
         }
@@ -193,10 +225,10 @@ public class ProductController {
      */
     @PutMapping("/")
     public ResponseEntity<Void> updateProduct(@RequestBody UpdateProductDTO product) {
-        try{
+        try {
             productService.updateProduct(product);
             return ResponseEntity.noContent().build();
-        }catch(NoSuchObjectException e) {
+        } catch (NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -205,7 +237,7 @@ public class ProductController {
      * Adds a category to a product.
      *
      * @param idProduct the ID of the product
-     * @param name the name of the category
+     * @param name      the name of the category
      * @return 204 No Content if successful, 404 if product not found, 400 if category does not exist
      */
     @PutMapping("/{idProduct}/category/add/{name}")
@@ -224,7 +256,7 @@ public class ProductController {
      * Removes a category from a product.
      *
      * @param idProduct the ID of the product
-     * @param name the name of the category
+     * @param name      the name of the category
      * @return 204 No Content if successful, 404 if product not found, 400 if category does not exist
      */
     @PutMapping("/{idProduct}/category/remove/{name}")
@@ -243,7 +275,7 @@ public class ProductController {
      * Adds a unit to a product.
      *
      * @param idProduct the ID of the product
-     * @param unitId the ID of the unit
+     * @param unitId    the ID of the unit
      * @return 204 No Content if successful, 404 if product not found, 400 if unit does not exist
      */
     @PutMapping("/{idProduct}/unit/add/{unitId}")
@@ -262,7 +294,7 @@ public class ProductController {
      * Removes a unit from a product.
      *
      * @param idProduct the ID of the product
-     * @param unitId the ID of the unit
+     * @param unitId    the ID of the unit
      * @return 204 No Content if successful, 404 if product not found, 400 if unit does not exist
      */
     @PutMapping("/{idProduct}/unit/remove/{unitId}")
@@ -285,10 +317,10 @@ public class ProductController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
-        try{
+        try {
             productService.deleteProduct(id);
             return ResponseEntity.noContent().build();
-        }catch(NoSuchObjectException e) {
+        } catch (NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
         }
     }

@@ -92,4 +92,9 @@ public class OrderItemReviewService {
                 .filter(oir -> Objects.equals(oir.getOrderItem().getProduct().getIdProduct(), id))
                 .map(OrderItemReviewDTO::toDto).toList();
     }
+
+    public List<OrderItemReviewDTO> getOrderItemReviewByProductId(Integer id) {
+        return orderItemReviewRepository.findAll().stream().filter(orderItemReview -> orderItemReview.getOrderItem().getProduct().getIdProduct() == id).map(OrderItemReviewDTO::toDto).toList();
+
+    }
 }

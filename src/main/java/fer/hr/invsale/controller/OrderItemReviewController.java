@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.management.InstanceAlreadyExistsException;
 import java.rmi.NoSuchObjectException;
+import java.util.List;
 
 /**
  * REST controller for managing order item reviews.
@@ -33,6 +34,11 @@ public class OrderItemReviewController {
         return orderItemReviewService.getOrderItemReviewById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/product/{id}")
+    public ResponseEntity<List<OrderItemReviewDTO>> getOrderItemReviewByProductId (@PathVariable Integer id) {
+        return ResponseEntity.ok(orderItemReviewService.getOrderItemReviewByProductId(id));
     }
 
     /**

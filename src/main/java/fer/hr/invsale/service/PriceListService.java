@@ -131,12 +131,36 @@ public class PriceListService {
     public List<PriceListDTO> getActivePriceListsForProduct(Integer idProduct) throws NoSuchObjectException {
         if(!productRepository.existsById(idProduct))
             throw new NoSuchObjectException("Product with id " + idProduct + " does not exist.");
-        return priceListRepository.findAllByProduct_IdProduct(idProduct).stream().map(PriceListDTO::toDto).toList();
+        return priceListRepository.findAllByProduct_IdProduct(idProduct).stream().filter(this::isActive).map(PriceListDTO::toDto).toList();
     }
 
     public void deletePriceList(Integer id) throws NoSuchObjectException {
         if(!priceListRepository.existsById(id))
             throw new NoSuchObjectException("Price list with id " + id + " does not exist.");
         priceListRepository.deleteById(id);
+    }
+
+    public PriceListDTO getActivePriceList(Integer idProduct, Integer idUnit) throws NoSuchObjectException {
+        if(!productRepository.existsById(idProduct))
+            throw new NoSuchObjectException("Product with id " + idProduct + " does not exist.");
+        Product product = productRepository.findById(idProduct).get();
+        if(!unitRepository.existsById(idUnit))
+            throw new NoSuchObjectException("Unit with id " + idProduct + " does not exist.");
+        Unit unit = unitRepository.findById(idUnit).get();
+        return PriceListDTO.toDto(priceListRepository.findAllByProductAndUnit(product, unit).stream().filter(this::isActive).findFirst().get());
+    }
+
+    public PriceListDTO getPriceListByDate(Integer idProduct, Integer idUnit, Timestamp date) throws NoSuchObjectException {
+        if(!productRepository.existsById(idProduct))
+            throw new NoSuchObjectException("Product with id " + idProduct + " does not exist.");
+        Product product = productRepository.findById(idProduct).get();
+        if(!unitRepository.existsById(idUnit))
+            throw new NoSuchObjectException("Unit with id " + idProduct + " does not exist.");
+        Unit unit = unitRepository.findById(idUnit).get();
+        return PriceListDTO.toDto(priceListRepository.findAllByProductAndUnit(product, unit)
+                .stream().filter(pl -> pl.getDateTimeFrom().before(date)
+                && pl.getDateTimeTo().after(date))
+                .findFirst().get()
+        );
     }
 }

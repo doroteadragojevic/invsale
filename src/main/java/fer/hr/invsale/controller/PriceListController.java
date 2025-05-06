@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.management.InstanceAlreadyExistsException;
 import java.rmi.NoSuchObjectException;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -44,6 +45,24 @@ public class PriceListController {
     public ResponseEntity<List<PriceListDTO>> getActivePriceListsForProduct(@PathVariable Integer idProduct) {
         try{
             return ResponseEntity.ok(priceListService.getActivePriceListsForProduct(idProduct));
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/{idProduct}/{idUnit}")
+    public ResponseEntity<PriceListDTO> getActivePriceList(@PathVariable Integer idProduct, @PathVariable Integer idUnit) {
+        try{
+            return ResponseEntity.ok(priceListService.getActivePriceList(idProduct, idUnit));
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PostMapping("/date/{idProduct}/{idUnit}")
+    public ResponseEntity<PriceListDTO> getPriceListByDate(@PathVariable Integer idProduct, @PathVariable Integer idUnit, @RequestBody Timestamp date) {
+        try{
+            return ResponseEntity.ok(priceListService.getPriceListByDate(idProduct, idUnit, date));
         }catch(NoSuchObjectException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

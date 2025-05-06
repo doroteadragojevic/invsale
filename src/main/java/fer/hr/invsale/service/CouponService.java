@@ -4,12 +4,17 @@ import fer.hr.invsale.DAO.Coupon;
 import fer.hr.invsale.DTO.coupon.CouponDTO;
 import fer.hr.invsale.DTO.coupon.UpdateCouponDTO;
 import fer.hr.invsale.repository.CouponRepository;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.rmi.NoSuchObjectException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -69,5 +74,35 @@ public class CouponService {
             throw new NoSuchObjectException("Coupon with code \"" + code + "\" does not exist.");
 
         couponRepository.deleteById(code);
+    }
+
+    public void couponApplied(@NonNull String email, String code) {
+        Coupon coupon = couponRepository.findById(code).get();
+        if(coupon.getUsagesByUser() == null)
+            coupon.setUsagesByUser(new HashMap<>());
+        if(coupon.getUsagesByUser().containsKey(email) && coupon.getUsagesByUser().get(email) >= coupon.getUsageLimit())
+            throw new IllegalStateException();
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        if(coupon.getDateTimeFrom().after(now) || coupon.getDateTimeTo().before(now))
+            throw new IllegalStateException();
+        Map<String, Integer> userUsages = coupon.getUsagesByUser();
+        if(!coupon.getUsagesByUser().containsKey(email)){
+            userUsages.put(email, 1);
+        } else {
+            userUsages.compute(email, (k, usages) -> usages + 1);
+        }
+        coupon.setUsagesByUser(userUsages);
+        couponRepository.save(coupon);
+    }
+
+    public void couponRemoved(@NonNull String email, String code) {
+        Coupon coupon = couponRepository.findById(code).get();
+        Map<String, Integer> userUsages = coupon.getUsagesByUser();
+        if(coupon.getUsagesByUser().containsKey(email)){
+            userUsages.compute(email, (k, usages) -> usages - 1);
+            coupon.setUsagesByUser(userUsages);
+            couponRepository.save(coupon);
+        }
+
     }
 }

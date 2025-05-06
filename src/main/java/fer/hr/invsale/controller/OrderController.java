@@ -1,8 +1,11 @@
 package fer.hr.invsale.controller;
 
+import fer.hr.invsale.DTO.StatsDTO;
 import fer.hr.invsale.DTO.order.CreateOrderDTO;
 import fer.hr.invsale.DTO.order.OrderDTO;
 import fer.hr.invsale.DTO.order.UpdateOrderDTO;
+import fer.hr.invsale.DTO.stock.WarehouseStatsDTO;
+import fer.hr.invsale.DTO.stock.ZoneProductsDTO;
 import fer.hr.invsale.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -69,6 +72,43 @@ public class OrderController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/cart/{email}")
+    public ResponseEntity<OrderDTO> getCart(@PathVariable String email) {
+        return orderService.getCart(email)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/stats/{range}")
+    public ResponseEntity<List<StatsDTO>> getStatsInRange(@PathVariable String range) {
+        return orderService.getStatsInRange(range);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @PutMapping("/{idOrder}/apply/{code}")
+    public ResponseEntity<OrderDTO> applyCoupon(@PathVariable Integer idOrder, @PathVariable String code) {
+        try{
+            return new ResponseEntity<>(orderService.applyCoupon(idOrder, code), HttpStatus.CREATED);
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }catch(IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PutMapping("/{idOrder}/remove/{code}")
+    public ResponseEntity<OrderDTO> removeCoupon(@PathVariable Integer idOrder, @PathVariable String code) {
+        try{
+            return new ResponseEntity<>(orderService.removeCoupon(idOrder, code), HttpStatus.CREATED);
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
     /**
      * Creates a new order.
      *
@@ -85,6 +125,15 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/place/")
+    public ResponseEntity<OrderDTO> placeOrder(@RequestBody UpdateOrderDTO order) {
+        try{
+            return new ResponseEntity<>(orderService.placeOrder(order), HttpStatus.CREATED);
+        }catch(IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
     /**
      * Updates an existing order.
      *
@@ -95,6 +144,16 @@ public class OrderController {
     public ResponseEntity<Void> updateOrder( @RequestBody UpdateOrderDTO order) {
         try{
             orderService.updateOrder(order);
+            return ResponseEntity.noContent().build();
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{idOrder}/{status}")
+    public ResponseEntity<Void> updateStatus(@PathVariable Integer idOrder, @PathVariable String status) {
+        try{
+            orderService.updateStatus(idOrder, status);
             return ResponseEntity.noContent().build();
         }catch(NoSuchObjectException e) {
             return ResponseEntity.notFound().build();
@@ -116,4 +175,15 @@ public class OrderController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/warehouse/stats")
+    public ResponseEntity<List<WarehouseStatsDTO>> getWarehouseStats() {
+        return ResponseEntity.ok(orderService.getWarehouseStats());
+    }
+
+    @GetMapping("/warehouse/zones")
+    public ResponseEntity<List<ZoneProductsDTO>> getZoneProducts() {
+        return ResponseEntity.ok(orderService.getZoneProducts());
+    }
+
 }

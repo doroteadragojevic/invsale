@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 @Data
 public class OrderDTO {
     private Integer idOrder;
+    private String email;
     @NonNull
     private Double totalPrice;
     @NonNull
@@ -26,6 +27,7 @@ public class OrderDTO {
     public static OrderDTO toDto(Order order) {
         return new OrderDTO(
                 order.getIdOrder(),
+                order.getInvsaleUser().getEmail(),
                 order.getTotalPrice(),
                 order.getOrderStatus().getName(),
                 order.getOrderTimestamp(),

@@ -18,4 +18,6 @@ public interface PriceListRepository extends JpaRepository<PriceList, Integer> {
     void deleteAllByUnit_IdUnit(Integer id);
 
     Optional<PriceList> findByProductAndUnit(Product product, Unit unit);
+
+    List<PriceList> findAllByProductAndUnit(Product product, Unit unit);
 }

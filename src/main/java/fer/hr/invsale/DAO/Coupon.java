@@ -46,7 +46,7 @@ public class Coupon {
      * This map represents coupon usages by each user.
      */
     @Convert(converter = MapToJsonConverter.class)
-    private Map<Integer, Integer> usagesByUser;
+    private Map<String, Integer> usagesByUser;
     /** Discount amount. */
     @NotNull
     private Double discount;

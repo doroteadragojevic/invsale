@@ -10,12 +10,12 @@ import java.io.IOException;
 import java.util.Map;
 
 @Converter
-public class MapToJsonConverter implements AttributeConverter<Map<Integer, Integer>, String> {
+public class MapToJsonConverter implements AttributeConverter<Map<String, Integer>, String> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(Map<Integer, Integer> map) {
+    public String convertToDatabaseColumn(Map<String, Integer> map) {
         try {
             return objectMapper.writeValueAsString(map);
         } catch (JsonProcessingException e) {
@@ -24,9 +24,9 @@ public class MapToJsonConverter implements AttributeConverter<Map<Integer, Integ
     }
 
     @Override
-    public Map<Integer, Integer> convertToEntityAttribute(String json) {
+    public Map<String, Integer> convertToEntityAttribute(String json) {
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<Integer, Integer>>() {});
+            return objectMapper.readValue(json, new TypeReference<Map<String, Integer>>() {});
         } catch (IOException e) {
             throw new IllegalArgumentException("Error converting JSON to map", e);
         }
