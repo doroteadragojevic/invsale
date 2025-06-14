@@ -41,7 +41,6 @@ public class ReservationService {
         reservation.setQuantity(quantity);
         reservation.setCreatedAt(now);
         reservation.setExpiresAt(expiresAt);
-
         reservationRepository.save(reservation);
     }
 
