@@ -1,14 +1,22 @@
-# Koristi službeni OpenJDK 17 image kao osnovu
-FROM eclipse-temurin:17-jdk-jammy
+# 1. stage: build
+FROM maven:3.8.6-eclipse-temurin-17 AS build
 
-# Postavi radni direktorij u containeru
 WORKDIR /app
 
-# Kopiraj buildani JAR iz target foldera u container i preimenuj u app.jar
-COPY target/*.jar app.jar
+# Kopiraj sve fajlove u container
+COPY . .
 
-# Otvori port 8080
+# Pokreni Maven build i generiraj JAR
+RUN mvn clean package -DskipTests
+
+# 2. stage: finalni image
+FROM eclipse-temurin:17-jdk-jammy
+
+WORKDIR /app
+
+# Kopiraj JAR iz build stagea
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
 
-# Pokreni aplikaciju
 ENTRYPOINT ["java", "-jar", "app.jar"]
