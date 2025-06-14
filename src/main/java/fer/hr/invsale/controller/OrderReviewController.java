@@ -33,6 +33,12 @@ public class OrderReviewController {
         return ResponseEntity.ok(orderReviewService.getAllOrderReviews());
     }
 
+
+    @GetMapping("/{idOrder}/{email}")
+    public ResponseEntity<Boolean> orderReviewExists (@PathVariable Integer idOrder, @PathVariable String email) {
+        return ResponseEntity.ok(orderReviewService.orderReviewExists(idOrder, email));
+    }
+
     /**
      * Creates a new order review.
      *

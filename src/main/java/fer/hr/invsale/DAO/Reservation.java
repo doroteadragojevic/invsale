@@ -19,10 +19,14 @@ public class Reservation {
 
     @ManyToOne
     private Product product;
+    @ManyToOne
+    private Unit unit;
     private Integer quantity;
     @ManyToOne
     private InvsaleUser user;
     private Timestamp createdAt;
     private Timestamp expiresAt;
+    @ManyToOne
+    private Order order;
 
 }

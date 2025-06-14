@@ -307,8 +307,8 @@ public class ProductService {
         return UnitDTO.toDto(priceListLowest.getUnit());
     }
 
-    public Integer getReservedQuantity(Integer id) {
-        return reservationService.getCurrentlyReservedQuantity(id);
+    public Integer getReservedQuantity(Integer id, Integer unitId) {
+        return reservationService.getCurrentlyReservedQuantity(id, unitId);
     }
 
     public List<ProductDTO> getRecommendedProducts(String email) {

@@ -86,4 +86,12 @@ public class OrderReviewService {
     public void deleteAllByOrder_IdOrder(Integer id) {
         orderReviewRepository.deleteAllByOrder_IdOrder(id);
     }
+
+    public Boolean orderReviewExists(Integer idOrder, String email) {
+        return orderReviewRepository
+                .findAll().stream()
+                .anyMatch(review ->
+                        Objects.equals(review.getOrder().getIdOrder(), idOrder)
+                && review.getInvsaleUser().getEmail().equals(email));
+    }
 }

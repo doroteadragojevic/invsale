@@ -70,7 +70,7 @@ public class OrderItemService {
         OrderItem newOrderItem = new OrderItem(product, unit, orderItem.getQuantity(), order);
         newOrderItem = orderItemRepository.save(newOrderItem);
         updateOrderTotalPrice(newOrderItem.getIdOrderItem(), true, 1);
-        reservationService.reserveProduct(product.getIdProduct(), order.getInvsaleUser().getEmail(), orderItem.getQuantity());
+        reservationService.reserveProduct(product.getIdProduct(), order.getInvsaleUser().getEmail(), orderItem.getQuantity(), orderItem.getUnitId());
         return newOrderItem;
     }
 
@@ -95,7 +95,7 @@ public class OrderItemService {
         OrderItem orderItem = orderItemRepository.findById(id).orElseThrow(NullPointerException::new);
         orderItem.setQuantity(orderItem.getQuantity() + 1);
         updateOrderTotalPrice(id, true, 1);
-        reservationService.updateReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), 1);
+        reservationService.updateReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), 1, orderItem.getUnit().getIdUnit());
         orderItemRepository.save(orderItem);
     }
 
@@ -117,7 +117,7 @@ public class OrderItemService {
         OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
         Product product = orderItem.getProduct();
         InvsaleUser user = orderItem.getOrder().getInvsaleUser();
-        reservationService.deleteReservation(product.getIdProduct(), user.getEmail());
+        reservationService.deleteReservation(product.getIdProduct(), user.getEmail(), orderItem.getUnit().getIdUnit());
         updateOrderTotalPrice(orderItemId, false, orderItem.getQuantity());
         orderItemReviewService.deleteAllByOrderItemId(orderItemId);
         orderItemRepository.deleteById(orderItemId);
@@ -130,12 +130,14 @@ public class OrderItemService {
         if (orderItem.getQuantity() != 0) {
             orderItem.setQuantity(orderItem.getQuantity() - 1);
             updateOrderTotalPrice(id, false, 1);
-            reservationService.updateReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), -1);
+            reservationService.updateReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), -1, orderItem.getUnit().getIdUnit());
+            orderItemRepository.save(orderItem);
         }
         if (orderItem.getQuantity() == 0){
             updateOrderTotalPrice(id, false, 1);
-            reservationService.deleteReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail());
+            reservationService.deleteReservation(orderItem.getProduct().getIdProduct(), orderItem.getOrder().getInvsaleUser().getEmail(), orderItem.getUnit().getIdUnit());
+            orderItemRepository.deleteById(id);
         }
-        orderItemRepository.save(orderItem);
+
     }
 }

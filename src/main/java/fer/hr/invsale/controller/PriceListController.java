@@ -59,6 +59,15 @@ public class PriceListController {
         }
     }
 
+    @GetMapping("/price/{idProduct}/{idUnit}")
+    public ResponseEntity<Double> getActivePrice(@PathVariable Integer idProduct, @PathVariable Integer idUnit) {
+        try{
+            return ResponseEntity.ok(priceListService.getPrice(idProduct, idUnit));
+        }catch(NoSuchObjectException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @PostMapping("/date/{idProduct}/{idUnit}")
     public ResponseEntity<PriceListDTO> getPriceListByDate(@PathVariable Integer idProduct, @PathVariable Integer idUnit, @RequestBody Timestamp date) {
         try{

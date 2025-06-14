@@ -80,8 +80,9 @@ public class OrderController {
     }
 
     @GetMapping("/stats/{range}")
-    public ResponseEntity<List<StatsDTO>> getStatsInRange(@PathVariable String range) {
-        return orderService.getStatsInRange(range);
+    public ResponseEntity<List<StatsDTO>> getStatsInRange(@PathVariable String range, @RequestParam(required = false) String category,
+                                                          @RequestParam(required = false) Integer product) {
+        return orderService.getStatsInRange(range, category, product);
     }
 
     @GetMapping("/")

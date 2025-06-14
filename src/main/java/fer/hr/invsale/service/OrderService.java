@@ -51,6 +51,12 @@ public class OrderService {
     @Autowired
     CouponService couponService;
 
+    @Autowired
+    ReservationService reservationService;
+
+    @Autowired
+    EmailService emailService;
+
     public List<OrderDTO> getAllOrdersByUser(String email) {
         if (!invsaleUserRepository.existsById(email)) throw new IllegalArgumentException("User does not exist.");
         return orderRepository.findAllByInvsaleUser_Email(email).stream().map(OrderDTO::toDto).toList();
@@ -156,8 +162,10 @@ public class OrderService {
         placedOrder.setShippingAddress(order.getShippingAddress());
         placedOrder.setOrderTimestamp(Timestamp.valueOf(LocalDateTime.now()));
         updateQuantity(order);
-        return OrderDTO.toDto(
-                orderRepository.save(placedOrder));
+        reservationService.deleteAllByOrderId(order.getIdOrder());
+        placedOrder = orderRepository.save(placedOrder);
+        emailService.sendSimpleEmail(placedOrder);
+        return OrderDTO.toDto(placedOrder);
     }
 
     private void updateQuantity(UpdateOrderDTO order) {
@@ -188,7 +196,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public ResponseEntity<List<StatsDTO>> getStatsInRange(String range) {
+    public ResponseEntity<List<StatsDTO>> getStatsInRange(String range, String category, Integer product) {
         List<StatsDTO> stats = new ArrayList<>();
         DateTimeFormatter formatter;
 
@@ -196,21 +204,21 @@ public class OrderService {
             formatter = DateTimeFormatter.ofPattern("dd.MM.");
             for (int i = 6; i >= 0; i--) {
                 LocalDate date = LocalDate.now().minusDays(i);
-                int count = countOrdersOnDate(date);
+                int count = countOrdersOnDate(date, category, product);
                 stats.add(new StatsDTO(date.format(formatter), count));
             }
         } else if ("month".equalsIgnoreCase(range)) {
             formatter = DateTimeFormatter.ofPattern("dd.MM.");
             for (int i = 29; i >= 0; i--) {
                 LocalDate date = LocalDate.now().minusDays(i);
-                int count = countOrdersOnDate(date);
+                int count = countOrdersOnDate(date, category, product);
                 stats.add(new StatsDTO(date.format(formatter), count));
             }
         } else if ("year".equalsIgnoreCase(range)) {
             formatter = DateTimeFormatter.ofPattern("MM.yyyy");
             int currentYear = LocalDate.now().getYear();
             for (int month = 1; month <= 12; month++) {
-                int count = countOrdersInMonth(month, currentYear);
+                int count = countOrdersInMonth(month, currentYear, category, product);
                 stats.add(new StatsDTO(month + "." + currentYear, count));
             }
         } else {
@@ -220,17 +228,41 @@ public class OrderService {
         return ResponseEntity.ok(stats);
     }
 
-    private int countOrdersInMonth(int month, int currentYear) {
+    private boolean filterByCategoryAndProduct(Order order, String category, Integer product) {
+        if(category!= null && !orderItemRepository
+                .findAllByOrder_IdOrder(order.getIdOrder())
+                .stream()
+                .anyMatch(orderItem -> orderItem.getProduct().getCategories().stream().map(c -> c.getName()).toList()
+                        .contains(category))) {
+            return false;
+        }
+
+        if(product!= null && !orderItemRepository
+                .findAllByOrder_IdOrder(order.getIdOrder())
+                .stream()
+                .anyMatch(orderItem -> orderItem.getProduct().getIdProduct().equals(product))) {
+            return false;
+        }
+        return true;
+    }
+
+    private int countOrdersInMonth(int month, int currentYear, String category, Integer product) {
         return (int) orderRepository.findAll().stream().filter(order ->
         {
+            if(!(category == null && product == null) && !filterByCategoryAndProduct(order, category, product)) {
+                return false;
+            }
             Timestamp timestamp = order.getOrderTimestamp();
             return timestamp.getMonth()+1 == month;
         }).count();
     }
 
-    private int countOrdersOnDate(LocalDate date) {
+    private int countOrdersOnDate(LocalDate date, String category, Integer product) {
         return (int) orderRepository.findAll().stream().filter(order ->
         {
+            if( !(category == null && product == null) && !filterByCategoryAndProduct(order, category, product)) {
+                return false;
+            }
             Timestamp timestamp = order.getOrderTimestamp();
             LocalDate ld = LocalDate.of(2025, timestamp.getMonth()+1, timestamp.getDate());
             return date.equals(ld);
@@ -276,9 +308,9 @@ public class OrderService {
         int secondThird = 2 * total / 3;
 
         List<ZoneProductsDTO> zones = new ArrayList<>();
-        zones.add(new ZoneProductsDTO("najblize", popularities.subList(0, firstThird).stream().map(p -> (String)p[0]).toList()));
-        zones.add(new ZoneProductsDTO("sredina", popularities.subList(firstThird, secondThird).stream().map(p -> (String)p[0]).toList()));
-        zones.add(new ZoneProductsDTO("udaljeno", popularities.subList(secondThird, total).stream().map(p -> (String)p[0]).toList()));
+        zones.add(new ZoneProductsDTO("closest", popularities.subList(0, firstThird).stream().map(p -> (String)p[0]).toList()));
+        zones.add(new ZoneProductsDTO("middle", popularities.subList(firstThird, secondThird).stream().map(p -> (String)p[0]).toList()));
+        zones.add(new ZoneProductsDTO("farthest", popularities.subList(secondThird, total).stream().map(p -> (String)p[0]).toList()));
 
         return zones;
     }

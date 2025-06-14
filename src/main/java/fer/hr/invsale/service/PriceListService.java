@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class PriceListService {
@@ -79,7 +80,7 @@ public class PriceListService {
     private boolean uniqueConditionMet(PriceListDTO priceList) {
         Product product = productRepository.findById(priceList.getIdProduct()).orElseThrow(NullPointerException::new);
         Unit unit = unitRepository.findById(priceList.getUnitId()).orElseThrow(NullPointerException::new);
-        return priceListRepository.findByProductAndUnit(product, unit).isEmpty();
+        return priceListRepository.findByProductAndUnit(product, unit).filter(this::isActive).isEmpty();
     }
 
     private boolean isActive(PriceList priceList) {
@@ -162,5 +163,20 @@ public class PriceListService {
                 && pl.getDateTimeTo().after(date))
                 .findFirst().get()
         );
+    }
+
+    public Double getPrice(Integer idProduct, Integer idUnit) throws NoSuchObjectException {
+        if (!productRepository.existsById(idProduct))
+            throw new NoSuchObjectException("Product with id " + idProduct + " does not exist.");
+        Product product = productRepository.findById(idProduct).get();
+        if(!unitRepository.existsById(idUnit))
+            throw new NoSuchObjectException("Unit with name " + idUnit + " does not exist.");
+        Unit unit = unitRepository.findById(idUnit).get();
+        PriceList priceList = priceListRepository.findByProductAndUnit(product, unit).orElseThrow(IllegalArgumentException::new);
+
+
+        return priceList.getDiscount() == null ?
+                priceList.getPriceWithoutDiscount() :
+                priceList.getPriceWithoutDiscount() * (1 - priceList.getDiscount());
     }
 }
