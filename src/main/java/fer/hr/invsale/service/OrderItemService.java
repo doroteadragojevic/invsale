@@ -70,7 +70,7 @@ public class OrderItemService {
         OrderItem newOrderItem = new OrderItem(product, unit, orderItem.getQuantity(), order);
         newOrderItem = orderItemRepository.save(newOrderItem);
         updateOrderTotalPrice(newOrderItem.getIdOrderItem(), true, 1);
-        reservationService.reserveProduct(product.getIdProduct(), order.getInvsaleUser().getEmail(), orderItem.getQuantity(), orderItem.getUnitId());
+        reservationService.reserveProduct(product.getIdProduct(), order.getInvsaleUser().getEmail(), orderItem.getQuantity(), orderItem.getUnitId(), orderItem.getOrderId());
         return newOrderItem;
     }
 

@@ -26,9 +26,12 @@ public class ReservationService {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
     UnitRepository unitRepository;
 
-    public void reserveProduct(Integer productId, String email, Integer quantity, Integer unidId) {
+    public void reserveProduct(Integer productId, String email, Integer quantity, Integer unidId, Integer orderId) {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         Timestamp expiresAt = new Timestamp(now.getTime() + 60 * 60 * 1000); // 1h
         Reservation reservation = new Reservation();
@@ -38,6 +41,8 @@ public class ReservationService {
         Unit unit = unitRepository.findById(unidId).get();
         reservation.setUnit(unit);
         reservation.setUser(user);
+        Order order = orderRepository.findById(orderId).get();
+        reservation.setOrder(order);
         reservation.setQuantity(quantity);
         reservation.setCreatedAt(now);
         reservation.setExpiresAt(expiresAt);

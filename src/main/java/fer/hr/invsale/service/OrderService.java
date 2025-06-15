@@ -154,6 +154,7 @@ public class OrderService {
         }
     }
 
+    @Transactional
     public OrderDTO placeOrder(UpdateOrderDTO order) {
         Order placedOrder = orderRepository.findById(order.getIdOrder()).orElseThrow(IllegalArgumentException::new);
         OrderStatus orderStatus = orderStatusRepository.findById("PLACED").orElseThrow(NullPointerException::new);
