@@ -347,6 +347,9 @@ public class ProductService {
 
         int i = 0;
         List<Product> popularProducts = getPopularProducts();
+        if(popularProducts.size() <10) {
+            popularProducts = productRepository.findAll();
+        }
         while(recommended.size() < 6){
             recommended.add(popularProducts.get(i++));
         }
