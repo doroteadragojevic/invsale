@@ -55,6 +55,9 @@ public class OrderService {
     ReservationService reservationService;
 
     @Autowired
+    ProductService productService;
+
+    @Autowired
     EmailService emailService;
 
     public List<OrderDTO> getAllOrdersByUser(String email) {
@@ -126,7 +129,7 @@ public class OrderService {
             if (couponRepository.findById(code).isPresent()) {
                 Coupon coupon = couponRepository.findById(code).get();
                 Double totalPrice = order.getTotalPrice() * (1 - coupon.getDiscount());
-                order.setTotalPrice(totalPrice);
+                order.setTotalPrice(Math.round(totalPrice * 100.0) / 100.0);
                 couponService.couponApplied(order.getInvsaleUser().getEmail(), code);
                 return OrderDTO.toDto(orderRepository.save(order));
             } else {
@@ -142,8 +145,9 @@ public class OrderService {
             Order order = orderRepository.findById(idOrder).get();
             if (couponRepository.findById(code).isPresent()) {
                 Coupon coupon = couponRepository.findById(code).get();
-                Double totalPrice = order.getTotalPrice() / (1 - coupon.getDiscount());
-                order.setTotalPrice(totalPrice);
+                //Double totalPrice = order.getTotalPrice() / (1 - coupon.getDiscount());
+                Double totalPrice = calculateTotalPriceFromItems(idOrder);
+                order.setTotalPrice(Math.round(totalPrice * 100.0) / 100.0);
                 couponService.couponRemoved(order.getInvsaleUser().getEmail(), code);
                 return OrderDTO.toDto(orderRepository.save(order));
             } else {
@@ -152,6 +156,18 @@ public class OrderService {
         } else {
             throw new NoSuchObjectException("Order with id " + idOrder + " does not exist.");
         }
+    }
+
+    private Double calculateTotalPriceFromItems(Integer idOrder) {
+        return orderItemRepository.findAllByOrder_IdOrder(idOrder).stream()
+                .mapToDouble(orderItem -> {
+                    try {
+                        return productService.getPrice(orderItem.getProduct().getIdProduct());
+                    } catch (NoSuchObjectException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .sum();
     }
 
     @Transactional
